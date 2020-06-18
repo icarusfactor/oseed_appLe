@@ -7,8 +7,8 @@
 /*
  Plugin Name: RSS Organized Seed Feed App
  Plugin URI: http://userspace.org
- Description: This app gathers RSS feed data from selected site and prioritizes sites and requires the AppLepie project plugin.
- Version: 0.5.0
+ Description: This app gathers RSS feed data from selected site and proitizes sites and requires the AppLepie project plugin.
+ Version: 0.27.1
  Author: Daniel Yount IcarusFactor
  Author URI: http://userspace.org
  License: GPLv2 or later
@@ -29,7 +29,7 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 defined('ABSPATH')or die('Hey, what are you doing here? You silly human!');
-if(!class_exists('oseedfeedAppLe')&& class_exists('AppLePiePlugin')&& class_exists('RAWseed')) {
+if(!class_exists('oseedfeedAppLe')&& class_exists('AppLePiePlugin')) {
 
     class oseedfeedAppLe {
         public $plugin;
@@ -58,9 +58,9 @@ if(!class_exists('oseedfeedAppLe')&& class_exists('AppLePiePlugin')&& class_exis
             $a = shortcode_atts(array('id' => '1', 'section' => 'Linux News Feeds', 'media' => 'APTEXT'), $atts);
             //Grab RSS feed data and priority from the ID and section name.
             // This will return one row with the id priority based on date.
-            $a2b = $RAWseed->priority_cast($a['id'], $a['section']);            
-            $ApplepiePlugin = new AppLePiePlugin();            
-            list($permrss, $titlerss, $daterss, $contentrss)= $ApplepiePlugin->feed_generate_process($a2b['rss'], 2, $a['media'], $a2b['id']);         
+            $a2b = $RAWseed->priority_cast($a['id'], $a['section']);
+            $ApplepiePlugin = new AppLePiePlugin();
+            list($permrss, $titlerss, $daterss, $contentrss)= $ApplepiePlugin->feed_generate_process($a2b['rss'], 2, $a['media'], $a2b['id']);
             //Error check
             if(empty($permrss)|| empty($titlerss)) {
                 $dat = array();
@@ -75,16 +75,19 @@ if(!class_exists('oseedfeedAppLe')&& class_exists('AppLePiePlugin')&& class_exis
                 }
                 if(empty($contentrss)) {
                     $dat[3] = 1;
-                }                
-                $Content = "NO DATA FROM " . $a2b['site'];                
+                }
+                $Content = "NO DATA FROM " . $a2b['site'];
+                //$Content .= $ApplepiePlugin->feed_generate_headtofoot( $a['media'] );
                 $Content .= $ApplepiePlugin->feed_generate_footer();
                 return $Content;
             }
             $Content = $ApplepiePlugin->feed_generate_header();
             //the output only uses one item, will make this loop to count in future. 
-            $Content .= " <span ><a  href=\"" . $permrss[1] . "\" >" . $titlerss[1] . "</a></span><br>";
+            //now convert links to open new page.      
+            $contentrss[1] = str_replace("<a href=", "<a target = '_blank'  href=", $contentrss[1]);
+            $Content .= " <span ><a  target='_blank' href=\"" . $permrss[1] . "\" >" . $titlerss[1] . "</a></span><br>";
             $Content .= " <span style=\"font-size: 9px;text-decoration: underline overline; \" >/// " . $daterss[1] . " ///</span>";
-            $Content .= "<a style=\"font-size: 9px;text-decoration: underline overline; \" href=\"" . $a2b['url'] . "\" >/// " . $a2b['site'] . " ///</a><br>";
+            $Content .= "<a target='_blank' style=\"font-size: 9px;text-decoration: underline overline; \" href=\"" . $a2b['url'] . "\" >/// " . $a2b['site'] . " ///</a><br>";
             $Content .= $ApplepiePlugin->feed_generate_headtofoot($a['media']);
             $Content .= "<span style=\"font-size: 12px;\" >" . $contentrss[1] . "</span>";
             $Content .= $ApplepiePlugin->feed_generate_footer();
